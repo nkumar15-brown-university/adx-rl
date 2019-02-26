@@ -72,8 +72,7 @@ def estimate_a_single_game(setup_obj: SingletonSetup, file: str = None, verbose:
     m = setup_obj.number_of_samples_per_profile()
 
     results = []
-    total_time = 0
-    print("\n***** Start Experiment: *******\n Collecting ", m, " samples for each profile for eps = ", setup_obj.eps, ", and budget = ", setup_obj.budget)
+    print("\n++++++++ Start Experiment: ++++++++\n Collecting ", m, " samples for each profile for eps = ", setup_obj.eps, ", and budget = ", setup_obj.budget)
     if serial:
         for num_we in range(0, n + 1):
             num_wf = n - num_we
@@ -127,7 +126,7 @@ def estimate_a_single_game(setup_obj: SingletonSetup, file: str = None, verbose:
 
     df_results = pd.DataFrame(results, columns=['num_WE', 'num_WF', 'we', 'wf', 'revenue'])
     df_results = df_results.sort_values(['num_WE', 'num_WF'], ascending=[True, False])
-    print("file = ", file)
+    print(f'\nwriting to file {file}')
     df_results.to_csv(file, index=False)
-    print("\n\n Average time per simulation = ", total_time / ((n + 1) * m))
-    print("\n\n ******* End ******* \n\n")
+    # print("\n\n Average time per simulation = ", total_time / ((n + 1) * m))
+    print("++++++++ End ++++++++ \n")

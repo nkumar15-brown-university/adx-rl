@@ -22,7 +22,7 @@ class SingletonSetup:
             self.budget = budget
             self.prob_max_market_segment = 4381.0 / 10000.0  # Corresponding to FL, self.possible_campaign_targets[15]: 4381.0 / 10000.0
 
-            # Base Goods. These have meaningless supply and reserve prices noe, but we update with actual supply and reserve price next.
+            # Base Goods. These have meaningless supply and reserve prices of None, but we update with actual supply and reserve price next.
             self.base_goods = [Good({"Male", "Young", "High"}, None, None),
                                Good({"Male", "Young", "Low"}, None, None),
                                Good({"Male", "Old", "High"}, None, None),
@@ -93,9 +93,8 @@ class SingletonSetup:
         def update_reserve_prices(self, reserve_prices: float):
             self.reserve_prices = reserve_prices
             # Update the reserve prices
-            # ToDo: change for multiple reserve prices
             for g in self.base_goods:
-                g.reserve_price = self.reserve_prices  # self.reserve_prices[g]
+                g.reserve_price = self.reserve_prices[g]
 
     instance = None
 
