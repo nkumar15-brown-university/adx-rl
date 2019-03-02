@@ -6,6 +6,20 @@ import os as os
 import math
 import configparser
 
+# Bounds on reserve price
+MIN_RESERVE_PRICE = 0.0
+MAX_RESERVE_PRICE = 1.5
+
+# Some dummy reserve prices.
+map_of_initial_reserve = {Good({"Male", "Young", "High"}, None, None): 0.0,
+                          Good({"Male", "Young", "Low"}, None, None): 0.0,
+                          Good({"Male", "Old", "High"}, None, None): 0.0,
+                          Good({"Male", "Old", "Low"}, None, None): 0.0,
+                          Good({"Female", "Young", "High"}, None, None): 0.0,
+                          Good({"Female", "Young", "Low"}, None, None): 0.0,
+                          Good({"Female", "Old", "High"}, None, None): 0.0,
+                          Good({"Female", "Old", "Low"}, None, None): 0.0}
+
 # We need some structure to keep an ordering of the different market segments.
 ordered_segments = [('Male', 'Young', 'High'),
                     ('Male', 'Young', 'Low'),
@@ -21,6 +35,13 @@ Gaussian = namedtuple('Gaussian', ['mean', 'std'])
 letter_to_segment = {'f': 'Female', 'm': 'Male', 'h': 'High', 'l': 'Low', 'y': 'Young', 'o': 'Old'}
 
 
+def read_reserve_prices_from_dict(map_of_reserve: Dict[str, float]) -> Dict[Good, float]:
+    reserve_map = {}
+    for market, reserve in map_of_reserve.items():
+        reserve_map[Good({letter_to_segment[l] for l in market}, None, None)] = float(reserve)
+    return reserve_map
+
+
 def read_reserve_prices(step: int, expt_directory: str) -> Dict[Good, float]:
     """
     Given a step of the experiment, read the reserve prices from the corresponding config.ini file
@@ -33,10 +54,7 @@ def read_reserve_prices(step: int, expt_directory: str) -> Dict[Good, float]:
         raise Exception(f'Directory {dir_location} does not exist.')
     config_file = configparser.ConfigParser()
     config_file.read(dir_location + '/config.ini')
-    reserve_map = {}
-    for market in config_file['RESERVE_PRICES']:
-        reserve_map[Good({letter_to_segment[l] for l in market}, None, None)] = float(config_file['RESERVE_PRICES'][market])
-    return reserve_map
+    return read_reserve_prices_from_dict(config_file['RESERVE_PRICES'])
 
 
 def get_gaussian(center: float, delta: float, epsilon: float, c_min: float = 0.0, c_max: float = 1.0) -> Gaussian:
@@ -86,22 +104,23 @@ def safe_create_dir(dir_location: str, fail_on_exists: bool = True) -> str:
     """
     if not os.path.exists(dir_location):
         os.makedirs(dir_location)
-        return dir_location
     elif fail_on_exists:
         raise Exception(f'Directory {dir_location} already exists, stopping the experiment')
+    return dir_location
 
 
-def save_step_config_file(step: int, map_of_reserve_prices: Dict[Good, float], expt_directory: str):
+def save_step_config_file(step: int, map_of_reserve_prices: Dict[Good, float], expt_directory: str, fail_on_exists: bool = True):
     """
     Saves a reserve price map to a config file
     :param step:
     :param map_of_reserve_prices:
     :param expt_directory:
+    :param fail_on_exists:
     :return:
     """
     config_file = configparser.ConfigParser()
     config_file['RESERVE_PRICES'] = {g.id: r for g, r in map_of_reserve_prices.items()}
-    dir_location = safe_create_dir(expt_directory + str(step) + '/')
+    dir_location = safe_create_dir(expt_directory + str(step) + '/', fail_on_exists)
     with open(dir_location + '/config.ini', 'w') as configfile:
         config_file.write(configfile)
 

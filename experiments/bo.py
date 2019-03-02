@@ -1,7 +1,5 @@
 from singletonsetup import SingletonSetup
 from experiments import estimate_a_single_game
-from bo_util import safe_create_dir, save_step_config_file, read_reserve_prices, read_revenue, get_gaussian, get_tuple_of_reserves, get_map_of_reserves, pretty_print_map_of_reserve
-from game.structures import Good
 from gt.brg import compute_eps_brg
 from gt.eq import compute_scc_eq, compute_sink_eq, save_eq_data, aggregators, aggregate
 from skopt import gp_minimize
@@ -9,30 +7,64 @@ from prettytable import PrettyTable
 import random
 import configparser
 import time
-import numpy as np
 import sys
+from bo_util import safe_create_dir, save_step_config_file, read_reserve_prices, \
+    read_revenue, get_gaussian, get_tuple_of_reserves, get_map_of_reserves, \
+    pretty_print_map_of_reserve, read_reserve_prices_from_dict, \
+    MIN_RESERVE_PRICE, MAX_RESERVE_PRICE, map_of_initial_reserve
+
+
+def get_gp_algorithm_param(which_algorithm, the_values, the_gaussians):
+    the_alphas = 1e-10
+    if which_algorithm == 'gp':
+        the_ys = the_values
+        the_noise = 1e-10
+    elif which_algorithm == 'gpm':
+        the_ys = [-g.mean for g in the_gaussians]
+        the_noise = 1e-10
+    else:
+        raise Exception(f'unknown algorithm {which_algorithm}')
+    return the_ys, the_noise, the_alphas
+
+
+def query_game(the_setup, the_results_dir, the_eps):
+    """
+    Given the setup object, the results dir and the eps, this function call other functions that
+    1) simulate the game
+    2) compute the eps brg
+    3) save the game play data.
+    :param the_setup:
+    :param the_results_dir:
+    :param the_eps:
+    :return:
+    """
+    # Estimate the game.
+    estimate_a_single_game(the_setup, file=the_results_dir + 'results.csv', serial=False)
+
+    # Compute the BRG
+    G, revenue_per_node = compute_eps_brg(file=the_results_dir + 'results.csv', eps=the_eps, normalize_revenue=True)
+
+    # Compute the eq - In this case SCC eq.
+    family_of_nodes, revenue_per_node_per_family_member = compute_scc_eq(G=G, revenue_per_node=revenue_per_node)
+
+    # Compute the eq - In this case Sink eq.
+    # family_of_nodes, revenue_per_node_per_family_member = compute_sink_eq(G=G, revenue_per_node=revenue_per_node)
+
+    # Save the data from the equilibria to a file that can be read later.
+    save_eq_data(family_of_nodes=family_of_nodes,
+                 revenue_per_node_per_family_member=revenue_per_node_per_family_member,
+                 aggregations=aggregate(revenue_per_node_per_family_member, aggregators['min-min'][0], aggregators['min-min'][1]),
+                 file=the_results_dir + 'eq.txt',
+                 verbose=False)
+
 
 if len(sys.argv) > 1:
     algorithm = sys.argv[1]
 else:
-    algorithm = 'random'
-
-# Some hard-coded reserve prices.
-map_of_initial_reserve = {Good({"Male", "Young", "High"}, None, None): 0.0,
-                          Good({"Male", "Young", "Low"}, None, None): 0.0,
-                          Good({"Male", "Old", "High"}, None, None): 0.0,
-                          Good({"Male", "Old", "Low"}, None, None): 0.0,
-                          Good({"Female", "Young", "High"}, None, None): 0.0,
-                          Good({"Female", "Young", "Low"}, None, None): 0.0,
-                          Good({"Female", "Old", "High"}, None, None): 0.0,
-                          Good({"Female", "Old", "Low"}, None, None): 0.0}
-
-# Bounds on reserve price
-MIN_RESERVE_PRICE = 0.0
-MAX_RESERVE_PRICE = 1.5
+    algorithm = 'gp'
 
 # The experiment id. Eventually, should be read from command line.
-expt_id = 'H'
+expt_id = 'SMALL'
 
 # Read the experiment directory
 expt_directory_base = SingletonSetup.path_to_results + f'experiment_' + expt_id + '/'
@@ -64,14 +96,33 @@ for trial in range(trials):
         # Collect all the setup into one object.
         my_setup = SingletonSetup(expt_id, k, n, reach_discount_factor, eps, delta, budget)
 
-        # Save in the 0/ directory the config.ini file with the initial reserve prices.
-        save_step_config_file(0, map_of_initial_reserve, expt_directory)
-
         # Keep track of the development of the experiment.
         revenue_map = {}
 
         # Time the experiment
         initial_time_bo = time.time()
+
+        # Compute the initial points first
+        x_init_config_file = configparser.ConfigParser()
+        x_init_config_file.read(f'{expt_directory_base}x_init/eps_{eps}/trial_{trial}/config.ini')
+        x_init_num = int(x_init_config_file['RESERVE_PRICES_META']['x_init_num'])
+        for i in range(0, x_init_num - 1):
+            init_x_folder_index = i - x_init_num + 1
+            print(f'Reading initial reserves prices #{i}, in folder {init_x_folder_index}')
+            # Update the setup with the experiment step and the reserve prices.
+            the_init_reserve = read_reserve_prices_from_dict(x_init_config_file[f'RESERVE_PRICES_{i}'])
+            print(f'-> Init reserve price {i} to query: \n{pretty_print_map_of_reserve(the_init_reserve)}')
+            SingletonSetup.set_reserve_prices(the_init_reserve)
+            SingletonSetup.set_expt_step(init_x_folder_index)
+            safe_create_dir(f'{expt_directory}{init_x_folder_index}')
+            query_game(my_setup, expt_directory + str(my_setup.expt_step) + '/', eps)
+            save_step_config_file(init_x_folder_index, the_init_reserve, expt_directory, False)
+            revenue_at_step = read_revenue(init_x_folder_index, expt_directory)
+            print(f'\t Revenue for this initial reserve = {revenue_at_step}')
+            revenue_map[get_tuple_of_reserves(the_init_reserve)] = revenue_at_step
+
+        # Initialize the 0 step with the last random initial point
+        save_step_config_file(0, read_reserve_prices_from_dict(x_init_config_file[f'RESERVE_PRICES_{x_init_num - 1}']), expt_directory)
 
         # Conduct the experiment.
         for i in range(0, budget):
@@ -84,68 +135,48 @@ for trial in range(trials):
             # Update the setup with the experiment step and the reserve prices.
             SingletonSetup.set_reserve_prices(current_reserve_prices)
             SingletonSetup.set_expt_step(i)
-            # The results directory
-            results_directory = expt_directory + str(my_setup.expt_step) + '/'
-            results_file = results_directory + 'results.csv'
-            results_eq_file = results_directory + 'eq.txt'
-
-            # Estimate the game.
-            estimate_a_single_game(my_setup, file=results_file, serial=False)
-
-            # Compute the BRG
-            G, revenue_per_node = compute_eps_brg(file=results_file, eps=eps, normalize_revenue=True)
-
-            # Compute the eq - In this case SCC eq.
-            family_of_nodes, revenue_per_node_per_family_member = compute_scc_eq(G=G, revenue_per_node=revenue_per_node)
-
-            # Compute the eq - In this case Sink eq.
-            # family_of_nodes, revenue_per_node_per_family_member = compute_sink_eq(G=G, revenue_per_node=revenue_per_node)
-
-            # Save the data from the equilibria to a file that can be read later.
-            save_eq_data(family_of_nodes=family_of_nodes,
-                         revenue_per_node_per_family_member=revenue_per_node_per_family_member,
-                         aggregations=aggregate(revenue_per_node_per_family_member, aggregators['min-min'][0], aggregators['min-min'][1]),
-                         file=results_eq_file,
-                         verbose=False)
+            query_game(my_setup, expt_directory + str(my_setup.expt_step) + '/', eps)
 
             # Read the value of the revenue found.
             revenue_at_step = read_revenue(i, expt_directory)
             print(f'\t Revenue at step = {revenue_at_step}')
 
-            # Query the next point using B.O.
+            # Query the next point using some search strategy. As of now, we have Random and B.O.
             revenue_map[get_tuple_of_reserves(current_reserve_prices)] = revenue_at_step
             reserves = [reserve for reserve, _ in revenue_map.items()]
             values = [revenue_map[r] for r in reserves]
 
             if algorithm == 'random':
                 next_reserve = {g: random.random() * MAX_RESERVE_PRICE for g, _ in map_of_initial_reserve.items()}
-                print(f'\t -> Next reserve price to query: \n{pretty_print_map_of_reserve(next_reserve)}')
-                save_step_config_file(i + 1, next_reserve, expt_directory)
-                continue
-
-            # Compute the Gaussian error appropriately for the Hoeffding Bound
-            if algorithm == 'gpn':
-                gaussians = [get_gaussian(-v, delta=delta, epsilon=eps) for v in values]
-                ys = [-g.mean for g in gaussians]
-                alphas = np.array([g.std ** 2 for g in gaussians])
             else:
-                ys = values
-                alphas = 1e-10
-            print(f'\t values = {values}')
-            # ToDo. This is just a hack to get the next query point! Should re-think this. The gp_minimize object does not return an optimizer!.
-            result, optimizer = gp_minimize(func=lambda x, the_f=revenue_map: the_f[x[0]],
-                                            dimensions=[(MIN_RESERVE_PRICE, MAX_RESERVE_PRICE) for _ in range(0, 8)],
-                                            n_calls=0,
-                                            x0=reserves,
-                                            y0=ys,
-                                            n_random_starts=0,
-                                            random_state=123,
-                                            alpha=alphas)
-            next_reserve = get_map_of_reserves(optimizer.ask())
-            # print(f'-> Next reserve price to query: \n{pretty_print_map_of_reserve(next_reserve)}')
+                # Compute the Gaussian error appropriately for the Hoeffding's like bounds
+                gaussians = [get_gaussian(-v, delta=delta, epsilon=eps) for v in values]
+                ys, noise, alphas = get_gp_algorithm_param(algorithm, values, gaussians)
+                # ToDo. This is just a hack to get the next query point! Should re-think this. The gp_minimize object does not return an optimizer!.
+                result, optimizer = gp_minimize(func=None,  # There is no function here! We just use this function to query the next point.,
+                                                dimensions=[(MIN_RESERVE_PRICE, MAX_RESERVE_PRICE) for _ in range(0, 8)],
+                                                base_estimator=None,
+                                                n_calls=0,
+                                                n_random_starts=0,
+                                                acq_func='EI',
+                                                acq_optimizer='lbfgs',
+                                                x0=reserves,
+                                                y0=ys,
+                                                random_state=123,
+                                                verbose=False,
+                                                callback=None,
+                                                n_points=10000,
+                                                n_restarts_optimizer=5,
+                                                xi=0.01,
+                                                kappa=None,
+                                                noise=noise,
+                                                n_jobs=-1,
+                                                alpha=alphas)
+                next_reserve = get_map_of_reserves(optimizer.ask())
+            # Save the results.
             save_step_config_file(i + 1, next_reserve, expt_directory)
 
-        print('\n****** End of BO-EMD Experiment ****** ')
+        print('\n****** End of EMD Experiment ****** ')
 
         revenue_table = PrettyTable()
         revenue_table.field_names = ['Reserve', 'Revenue']

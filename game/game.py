@@ -57,6 +57,8 @@ def draw_one_campaign(n: int, reach_discount_factor: float, k: int, goods: List[
     # budget = np.random.normal(reach, 0.1 * reach)
     # The beta variable is bounded and with the above parameters, is a reasonable approximation to what we were looking for with the normal.
     budget = reach * (np.random.beta(10, 10) + 0.5)
+    # The beta variable before was to symmetric perhaps resulting in a too easy to optimize revenue. Here we introduce some asymmetry
+    # budget = reach * (np.random.beta(3, 10) + 0.5)
     if budget <= 0:
         raise Exception("A campaign cannot have a non-positive budget")
     return Campaign("Random Campaign " + str(uuid.uuid4()), reach, budget, random_target)
