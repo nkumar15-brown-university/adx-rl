@@ -64,7 +64,7 @@ else:
     algorithm = 'gp'
 
 # The experiment id. Eventually, should be read from command line.
-expt_id = 'SMALL'
+expt_id = 'calena'
 
 # Read the experiment directory
 expt_directory_base = SingletonSetup.path_to_results + f'experiment_' + expt_id + '/'
