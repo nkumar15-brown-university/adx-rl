@@ -2,9 +2,14 @@ from singletonsetup import SingletonSetup
 from bo_util import safe_create_dir, map_of_initial_reserve, MIN_RESERVE_PRICE, MAX_RESERVE_PRICE
 import random
 import configparser
+import sys
 
-# The experiment id. Eventually, should be read from command line.
-expt_id = 'calena'
+if len(sys.argv) > 1:
+    expt_id = sys.argv[1]
+    x_init_num = int(sys.argv[2])
+else:
+    expt_id = 'calena'
+    x_init_num = 10
 
 # Read the experiment directory
 expt_directory_base = SingletonSetup.path_to_results + f'experiment_' + expt_id + '/'
@@ -15,7 +20,6 @@ expt_config.read(expt_directory_base + 'config.ini')
 eps_values = eval(expt_config['PARAMETERS']['eps_values'])
 trials = int(expt_config['PARAMETERS']['trials'])
 
-x_init_num = 10
 for trial in range(trials):
     for eps in eps_values:
         print(trial, eps)

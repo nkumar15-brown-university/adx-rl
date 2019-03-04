@@ -74,10 +74,10 @@ def get_gaussian(center: float, delta: float, epsilon: float, c_min: float = 0.0
     if c2 > c3:
         c2 = c3
     # assert c_min <= c1 <= c2 <= c_max, f'Cannot satisfy: {c_min} <= {c1} <= {c2} <= {c_max} for (c={center}, epsilon={epsilon})'
-    if c1 == c2:
+    if abs(c1 - c2) < 1e-10:
         return Gaussian(c1, 0.0)
     dc = (c1 - c0) ** 2 + (c3 - c2) ** 2
-    if dc < 1e-12:
+    if dc < 1e-10:
         g1, g2, g3 = 0.0, 1.0, 0.0
     else:
         g1 = d * (c1 - c0) / dc

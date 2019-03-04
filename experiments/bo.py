@@ -59,12 +59,13 @@ def query_game(the_setup, the_results_dir, the_eps):
 
 
 if len(sys.argv) > 1:
-    algorithm = sys.argv[1]
+    expt_id = sys.argv[1]
+    algorithm = sys.argv[2]
+    start_trial = int(sys.argv[3])
 else:
-    algorithm = 'gp'
-
-# The experiment id. Eventually, should be read from command line.
-expt_id = 'calena'
+    expt_id = 'calena'
+    algorithm = 'gpm'
+    start_trial = 2
 
 # Read the experiment directory
 expt_directory_base = SingletonSetup.path_to_results + f'experiment_' + expt_id + '/'
@@ -81,17 +82,17 @@ budget = int(expt_config['PARAMETERS']['budget'])
 trials = int(expt_config['PARAMETERS']['trials'])
 
 # We will perform a number of trials ...
-for trial in range(trials):
+for trial in range(start_trial, trials):
     # .. For a number of epsilons.
     for eps in eps_values:
         # Create the folder for the experiment
-        expt_directory = safe_create_dir(expt_directory_base + algorithm + '/eps_' + str(eps) + '/trial_' + str(trial) + '/')
+        expt_directory = safe_create_dir(expt_directory_base + algorithm + '/eps_' + str(eps) + '/trial_' + str(trial) + '/', False)
 
-        print('\n************** EMD EXPERIMENT **************')
+        # print('\n************** EMD EXPERIMENT **************')
 
         # Experiments parameters read from .ini file:
-        print(f'Trial {trial} for algorithm: {algorithm}')
-        print(f'k = {k}, n = {n}, reach_discount_factor = {reach_discount_factor}, eps = {eps}, delta = {delta}, budget = {budget}')
+        print(f'Experiment {expt_id}, trial {trial} for algorithm: {algorithm}, eps = {eps}')
+        # print(f'k = {k}, n = {n}, reach_discount_factor = {reach_discount_factor}, eps = {eps}, delta = {delta}, budget = {budget}')
 
         # Collect all the setup into one object.
         my_setup = SingletonSetup(expt_id, k, n, reach_discount_factor, eps, delta, budget)
@@ -108,29 +109,30 @@ for trial in range(trials):
         x_init_num = int(x_init_config_file['RESERVE_PRICES_META']['x_init_num'])
         for i in range(0, x_init_num - 1):
             init_x_folder_index = i - x_init_num + 1
-            print(f'Reading initial reserves prices #{i}, in folder {init_x_folder_index}')
+            print(f'\t Step {init_x_folder_index} out of {x_init_num} initial')
+            # print(f'Reading initial reserves prices #{i}, in folder {init_x_folder_index}')
             # Update the setup with the experiment step and the reserve prices.
             the_init_reserve = read_reserve_prices_from_dict(x_init_config_file[f'RESERVE_PRICES_{i}'])
-            print(f'-> Init reserve price {i} to query: \n{pretty_print_map_of_reserve(the_init_reserve)}')
+            # print(f'-> Init reserve price {i} to query: \n{pretty_print_map_of_reserve(the_init_reserve)}')
             SingletonSetup.set_reserve_prices(the_init_reserve)
             SingletonSetup.set_expt_step(init_x_folder_index)
-            safe_create_dir(f'{expt_directory}{init_x_folder_index}')
+            safe_create_dir(f'{expt_directory}{init_x_folder_index}', False)
             query_game(my_setup, expt_directory + str(my_setup.expt_step) + '/', eps)
             save_step_config_file(init_x_folder_index, the_init_reserve, expt_directory, False)
             revenue_at_step = read_revenue(init_x_folder_index, expt_directory)
-            print(f'\t Revenue for this initial reserve = {revenue_at_step}')
+            # print(f'\t Revenue for this initial reserve = {revenue_at_step}')
             revenue_map[get_tuple_of_reserves(the_init_reserve)] = revenue_at_step
 
         # Initialize the 0 step with the last random initial point
-        save_step_config_file(0, read_reserve_prices_from_dict(x_init_config_file[f'RESERVE_PRICES_{x_init_num - 1}']), expt_directory)
+        save_step_config_file(0, read_reserve_prices_from_dict(x_init_config_file[f'RESERVE_PRICES_{x_init_num - 1}']), expt_directory, False)
 
         # Conduct the experiment.
         for i in range(0, budget):
-            print(f'\n Step {i} out of {budget}')
+            print(f'\t Step {i} out of {budget}, eps = {eps}')
             # Read the reserve price
             current_reserve_prices = read_reserve_prices(i, expt_directory)
-            print(f'\n\t -> Running step #{i}, with reserve: \n{pretty_print_map_of_reserve(current_reserve_prices)}')
-            print(f'\n\t -> Current state of the revenue function = {revenue_map}')
+            # print(f'\n\t -> Running step #{i}, with reserve: \n{pretty_print_map_of_reserve(current_reserve_prices)}')
+            # print(f'\n\t -> Current state of the revenue function = {revenue_map}')
 
             # Update the setup with the experiment step and the reserve prices.
             SingletonSetup.set_reserve_prices(current_reserve_prices)
@@ -139,7 +141,7 @@ for trial in range(trials):
 
             # Read the value of the revenue found.
             revenue_at_step = read_revenue(i, expt_directory)
-            print(f'\t Revenue at step = {revenue_at_step}')
+            # print(f'\t Revenue at step = {revenue_at_step}')
 
             # Query the next point using some search strategy. As of now, we have Random and B.O.
             revenue_map[get_tuple_of_reserves(current_reserve_prices)] = revenue_at_step
@@ -174,15 +176,15 @@ for trial in range(trials):
                                                 alpha=alphas)
                 next_reserve = get_map_of_reserves(optimizer.ask())
             # Save the results.
-            save_step_config_file(i + 1, next_reserve, expt_directory)
+            save_step_config_file(i + 1, next_reserve, expt_directory, False)
 
-        print('\n****** End of EMD Experiment ****** ')
+        # print('\n****** End of EMD Experiment ****** ')
 
-        revenue_table = PrettyTable()
-        revenue_table.field_names = ['Reserve', 'Revenue']
-        revenue_table.align['Reserve'] = 'l'
-        revenue_table.align['Revenue'] = 'l'
-        for r, rev in revenue_map.items():
-            revenue_table.add_row([r, rev])
-        print(revenue_table)
-        print(f'\n total_time for one BO experiment with budget = {budget}  = {time.time() - initial_time_bo}')
+        # revenue_table = PrettyTable()
+        # revenue_table.field_names = ['Reserve', 'Revenue']
+        # revenue_table.align['Reserve'] = 'l'
+        # revenue_table.align['Revenue'] = 'l'
+        # for r, rev in revenue_map.items():
+        #    revenue_table.add_row([r, rev])
+        # print(revenue_table)
+        # print(f'\n total_time for one BO experiment with budget = {budget}  = {time.time() - initial_time_bo}')

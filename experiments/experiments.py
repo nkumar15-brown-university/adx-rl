@@ -1,5 +1,6 @@
 from we_wf_experiments import run_we_wf_experiments
 from singletonsetup import SingletonSetup
+from bo_util import safe_create_dir
 from game.statistics import compute_statistics
 from prettytable import PrettyTable
 from multiprocessing import cpu_count
@@ -16,7 +17,8 @@ def run_a_game_on_range(num_we, num_wf, k, start, end, m, reach_discount_factor,
 
 
 def run_a_game(num_we, num_wf, k, t, m, reach_discount_factor, setup_base_goods, setup_pmf_base, setup_possible, setup_pmf_target, verbose):
-    print("\r" + "(WE, WF) = (", num_we, ",", num_wf, ") \t -> \t " + str((t / (m - 1)) * 100) + "% done", end="")
+    if verbose:
+        print("\r" + "(WE, WF) = (", num_we, ",", num_wf, ") \t -> \t " + str((t / (m - 1)) * 100) + "% done", end="")
     # All fixed parameters are ready, can run an experiment now.
     we_c, wf_c, the_allocations, the_expenditure = run_we_wf_experiments(reach_discount_factor,
                                                                          k,
@@ -72,11 +74,13 @@ def estimate_a_single_game(setup_obj: SingletonSetup, file: str = None, verbose:
     m = setup_obj.number_of_samples_per_profile()
 
     results = []
-    print("\n++++++++ Start Experiment: ++++++++\n Collecting ", m, " samples for each profile for eps = ", setup_obj.eps, ", and budget = ", setup_obj.budget)
+    if verbose:
+        print("\n++++++++ Start Experiment: ++++++++\n Collecting ", m, " samples for each profile for eps = ", setup_obj.eps, ", and budget = ", setup_obj.budget)
     if serial:
         for num_we in range(0, n + 1):
             num_wf = n - num_we
-            print("")
+            if verbose:
+                print("")
             for t in range(0, m):
                 results.append(run_a_game(num_we=num_we,
                                           num_wf=num_wf,
@@ -100,7 +104,8 @@ def estimate_a_single_game(setup_obj: SingletonSetup, file: str = None, verbose:
             for num_we in range(0, n + 1):
                 num_wf = n - num_we
                 for start, end in zip(starts, ends):
-                    # print(f"running from {start} to {end}")
+                    if verbose:
+                        print(f"running from {start} to {end}")
                     futures.append(executor.submit(run_a_game_on_range,
                                                    num_we=num_we,
                                                    num_wf=num_wf,
@@ -114,19 +119,25 @@ def estimate_a_single_game(setup_obj: SingletonSetup, file: str = None, verbose:
                                                    setup_possible=setup_obj.possible_campaign_targets,
                                                    setup_pmf_target=setup_obj.pmf_target_goods,
                                                    verbose=verbose))
-                # print(f'submitted {len(starts)} jobs', flush=True)
+                if verbose:
+                    print(f'submitted {len(starts)} jobs', flush=True)
             for future in as_completed(futures):
                 exp = future.exception()
+                # If an exception occurred, save it to a file and keep going.
                 if exp is not None:
-                    print("An exception occurred:", exp)
-                    raise Exception("Something went wrong with one worker")
+                    error_log_dir = f'../results/experiments/experiment_{setup_obj.expt_id}/error/'
+                    safe_create_dir(error_log_dir, False)
+                    f = open(f'{error_log_dir}error.txt', "a")
+                    f.write(f'An exception occurred: {exp}')
+                    print(f'An exception occurred: {exp}')
                 else:
                     result = future.result()
                     results.extend(result)
 
     df_results = pd.DataFrame(results, columns=['num_WE', 'num_WF', 'we', 'wf', 'revenue'])
     df_results = df_results.sort_values(['num_WE', 'num_WF'], ascending=[True, False])
-    print(f'\nwriting to file {file}')
+    if verbose:
+        print(f'\nwriting to file {file}')
     df_results.to_csv(file, index=False)
     # print("\n\n Average time per simulation = ", total_time / ((n + 1) * m))
-    print("++++++++ End ++++++++ \n")
+    # print("++++++++ End ++++++++ \n")
