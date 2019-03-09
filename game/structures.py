@@ -5,6 +5,9 @@ from prettytable import PrettyTable
 
 @dataclass
 class Good:
+    """
+    Represents an impression opportunity
+    """
     id: str
     market_segments: Set[str]
     supply: int
@@ -37,6 +40,9 @@ class Good:
 
 @dataclass
 class Campaign:
+    """
+    Represents a campaign
+    """
     name: str
     reach: int
     budget: float
@@ -54,12 +60,18 @@ class Campaign:
 
 @dataclass
 class Market:
+    """
+    A market is a list of campaigns together with a list of goods
+    """
     campaigns: List[Campaign]
     goods: List[Good]
 
 
 @dataclass
 class Allocation:
+    """
+    An allocation is a mapping from campaings to impressions (goods).
+    """
     market: Market
     allocation: Dict[Campaign, Dict[Good, int]]
     total_allocation_campaign: Dict[Campaign, int]
@@ -93,6 +105,9 @@ class Allocation:
 
 @dataclass
 class Bid:
+    """
+    A bid of a campaign is for a good and specifics a bid amount and bid limit.
+    """
     campaign: Campaign
     good: Good
     bid: float

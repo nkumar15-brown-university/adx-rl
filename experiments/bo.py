@@ -4,6 +4,7 @@ from gt.brg import compute_eps_brg
 from gt.eq import compute_scc_eq, compute_sink_eq, save_eq_data, aggregators, aggregate
 from skopt import gp_minimize
 from prettytable import PrettyTable
+import numpy as np
 import random
 import configparser
 import time
@@ -11,20 +12,7 @@ import sys
 from bo_util import safe_create_dir, save_step_config_file, read_reserve_prices, \
     read_revenue, get_gaussian, get_tuple_of_reserves, get_map_of_reserves, \
     pretty_print_map_of_reserve, read_reserve_prices_from_dict, \
-    MIN_RESERVE_PRICE, MAX_RESERVE_PRICE, map_of_initial_reserve
-
-
-def get_gp_algorithm_param(which_algorithm, the_values, the_gaussians):
-    the_alphas = 1e-10
-    if which_algorithm == 'gp':
-        the_ys = the_values
-        the_noise = 1e-10
-    elif which_algorithm == 'gpm':
-        the_ys = [-g.mean for g in the_gaussians]
-        the_noise = 1e-10
-    else:
-        raise Exception(f'unknown algorithm {which_algorithm}')
-    return the_ys, the_noise, the_alphas
+    MIN_RESERVE_PRICE, MAX_RESERVE_PRICE, map_of_initial_reserve, get_gp_algorithm_param
 
 
 def query_game(the_setup, the_results_dir, the_eps):
@@ -64,8 +52,8 @@ if len(sys.argv) > 1:
     start_trial = int(sys.argv[3])
 else:
     expt_id = 'calena'
-    algorithm = 'gpm'
-    start_trial = 2
+    algorithm = 'gpn'
+    start_trial = 0
 
 # Read the experiment directory
 expt_directory_base = SingletonSetup.path_to_results + f'experiment_' + expt_id + '/'

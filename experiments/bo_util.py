@@ -5,6 +5,7 @@ from prettytable import PrettyTable
 import os as os
 import math
 import configparser
+import numpy as np
 
 # Bounds on reserve price
 MIN_RESERVE_PRICE = 0.0
@@ -93,6 +94,23 @@ def get_gaussian(center: float, delta: float, epsilon: float, c_min: float = 0.0
     s2 += g3 * (sig(c3) - sig(c2))
     s2 = math.sqrt(s2)
     return Gaussian(m2, s2)
+
+
+def get_gp_algorithm_param(which_algorithm, the_values, the_gaussians):
+    the_alphas = 1e-10
+    if which_algorithm == 'gp':
+        the_ys = the_values
+        the_noise = 1e-10
+    elif which_algorithm == 'gpm':
+        the_ys = [-g.mean for g in the_gaussians]
+        the_noise = 1e-10
+    elif which_algorithm == 'gpn':
+        the_ys = [g.mean for g in the_gaussians]
+        the_noise = 1e-10
+        the_alphas = np.array([g.std ** 2 for g in the_gaussians])
+    else:
+        raise Exception(f'unknown algorithm {which_algorithm}')
+    return the_ys, the_noise, the_alphas
 
 
 def safe_create_dir(dir_location: str, fail_on_exists: bool = True) -> str:

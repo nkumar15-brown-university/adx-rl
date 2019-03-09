@@ -206,8 +206,8 @@ class TestGreedyAllocation():
         grid = [i for i in range(0, 200)]
         sigmoidal = [compute_sigmoidal_effective_reach_ratio(i, 100) for i in grid]
         print(sigmoidal)
-        plt.plot(grid, sigmoidal)
-        plt.show()
+        # plt.plot(grid, sigmoidal)
+        # plt.show()
 
     def test_double_ordering(self):
 
@@ -236,20 +236,3 @@ class TestGreedyAllocation():
         print(PrettyPrints.get_non_anonymous_prices_pretty_table(prices))
 
         print(PrettyPrints.get_bids_pretty_table(wf_strategy(market)))
-
-    def test_sink(self):
-        G = nx.DiGraph()
-        G.add_nodes_from([1, 2, 3])
-        G.add_edge(1, 2)
-        G.add_edge(2, 1)
-        revenue = {1: 1, 2: 2, 3: 30}
-        l = get_sinks(G, revenue)
-
-    def test_new_sink(self):
-        results_file = "../results/experiments/revenue_expt/grid_revenue/80/results.csv"
-        sinks, revenue_per_node_per_sink, minimum_revenue_per_sink, worst_case_revenue = compute_eps_brg(file=results_file, eps=0.05)
-        for scc in sinks:
-            print("\n", scc)
-        print(revenue_per_node_per_sink)
-        print(minimum_revenue_per_sink)
-        print(worst_case_revenue)

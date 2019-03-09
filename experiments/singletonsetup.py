@@ -5,6 +5,9 @@ import math
 
 
 class SingletonSetup:
+    """
+    An object that ties together all the information needed to run an experiment.
+    """
     path_to_results = '../results/experiments/'
 
     class __SingletonSetup__:

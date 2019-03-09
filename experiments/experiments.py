@@ -127,9 +127,10 @@ def estimate_a_single_game(setup_obj: SingletonSetup, file: str = None, verbose:
                 if exp is not None:
                     error_log_dir = f'../results/experiments/experiment_{setup_obj.expt_id}/error/'
                     safe_create_dir(error_log_dir, False)
-                    f = open(f'{error_log_dir}error.txt', "a")
-                    f.write(f'An exception occurred: {exp}')
+                    with open(f'{error_log_dir}error.txt', "a") as f:
+                        f.write(f'An exception of type {type(exp)} occurred: {exp} \n')
                     print(f'An exception occurred: {exp}')
+
                 else:
                     result = future.result()
                     results.extend(result)

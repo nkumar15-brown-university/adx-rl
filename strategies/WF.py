@@ -3,6 +3,11 @@ from typing import List, Tuple, Dict
 
 
 def waterfall(m: Market) -> Tuple[Allocation, Dict[Campaign, Good]]:
+    """
+    Given a market, run the waterfall algorithm.
+    :param m:
+    :return:
+    """
     # Book keeping structures
     alloca = {c: {g: 0 for g in m.goods} for c in m.campaigns}
     prices = {c: {g: g.reserve_price for g in m.goods} for c in m.campaigns}

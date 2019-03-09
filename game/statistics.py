@@ -4,10 +4,22 @@ import math
 
 
 def compute_sigmoidal_effective_reach_ratio(x, reach):
+    """
+    Given a number of procurred impressions, computes a sigmoidal fraction of the reach.
+    :param x:
+    :param reach:
+    :return:
+    """
     return (2 / 4.08577) * (math.atan(4.08577 * (x / reach) - 3.08577) - math.atan(-3.08577))
 
 
 def compute_statistics(allocations: Dict[Campaign, Dict[Good, int]], expenditure: Dict[Campaign, Dict[Good, float]]):
+    """
+    Computes the statistics of the game.
+    :param allocations:
+    :param expenditure:
+    :return:
+    """
     total_allocations = 0
     total_expenditure = 0
     total_effective_allocation = {}
