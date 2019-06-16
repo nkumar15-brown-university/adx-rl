@@ -1,7 +1,9 @@
-from game.structures import Market, Allocation, Campaign, Good, Bid, Sorting
-from typing import Dict, List
-import pulp
 import itertools
+from typing import Dict, List
+
+import pulp
+
+from game.structures import Market, Allocation, Good, Bid, Sorting
 
 
 def greedy_allocation(m: Market) -> Allocation:

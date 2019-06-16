@@ -1,13 +1,13 @@
+import itertools
+import math
+
+import matplotlib.pyplot as plt
+
+from game.game import run_auctions, draw_one_impression_opportunity
+from game.statistics import compute_statistics, compute_sigmoidal_effective_reach_ratio
 from game.structures import Campaign, Good, Market, Bid, PrettyPrints, Sorting, Allocation
 from strategies.WE import greedy_allocation, pricing, we_strategy
 from strategies.WF import waterfall, wf_strategy
-from game.game import run_auctions, draw_one_impression_opportunity
-from game.statistics import compute_statistics, compute_sigmoidal_effective_reach_ratio
-from gt.brg import compute_eps_brg
-import networkx as nx
-import matplotlib.pyplot as plt
-import math
-import itertools
 
 
 class TestGreedyAllocation():
@@ -206,8 +206,11 @@ class TestGreedyAllocation():
         grid = [i for i in range(0, 200)]
         sigmoidal = [compute_sigmoidal_effective_reach_ratio(i, 100) for i in grid]
         print(sigmoidal)
-        # plt.plot(grid, sigmoidal)
-        # plt.show()
+        plt.plot(grid, sigmoidal)
+        #plt.axhline(1.0, 0, 200)
+        plt.ylabel('% of reward')
+        plt.xlabel('Number of impressions')
+        plt.show()
 
     def test_double_ordering(self):
 

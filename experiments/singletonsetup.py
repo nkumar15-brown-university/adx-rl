@@ -1,7 +1,7 @@
-from game.structures import Good
-from game.statistics import compute_sigmoidal_effective_reach_ratio
-from typing import Dict, Set
 import math
+
+from game.statistics import compute_sigmoidal_effective_reach_ratio
+from game.structures import Good
 
 
 class SingletonSetup:

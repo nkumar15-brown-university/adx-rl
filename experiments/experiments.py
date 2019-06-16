@@ -1,15 +1,33 @@
-from we_wf_experiments import run_we_wf_experiments
-from singletonsetup import SingletonSetup
-from bo_util import safe_create_dir
-from game.statistics import compute_statistics
-from prettytable import PrettyTable
-from multiprocessing import cpu_count
 from concurrent.futures import ProcessPoolExecutor, as_completed
-import pandas as pd
+from multiprocessing import cpu_count
+
 import numpy as np
+import pandas as pd
+from prettytable import PrettyTable
+
+from game.statistics import compute_statistics
+from bo_util import safe_create_dir
+from singletonsetup import SingletonSetup
+from we_wf_experiments import run_we_wf_experiments
 
 
 def run_a_game_on_range(num_we, num_wf, k, start, end, m, reach_discount_factor, setup_base_goods, setup_pmf_base, setup_possible, setup_pmf_target, verbose):
+    """
+    Runs a single game on a range.
+    :param num_we:
+    :param num_wf:
+    :param k:
+    :param start:
+    :param end:
+    :param m:
+    :param reach_discount_factor:
+    :param setup_base_goods:
+    :param setup_pmf_base:
+    :param setup_possible:
+    :param setup_pmf_target:
+    :param verbose:
+    :return:
+    """
     results = []
     for t in range(start, end):
         results.append(run_a_game(num_we, num_wf, k, t, m, reach_discount_factor, setup_base_goods, setup_pmf_base, setup_possible, setup_pmf_target, verbose))
@@ -17,6 +35,21 @@ def run_a_game_on_range(num_we, num_wf, k, start, end, m, reach_discount_factor,
 
 
 def run_a_game(num_we, num_wf, k, t, m, reach_discount_factor, setup_base_goods, setup_pmf_base, setup_possible, setup_pmf_target, verbose):
+    """
+    Runs a single game.
+    :param num_we:
+    :param num_wf:
+    :param k:
+    :param t:
+    :param m:
+    :param reach_discount_factor:
+    :param setup_base_goods:
+    :param setup_pmf_base:
+    :param setup_possible:
+    :param setup_pmf_target:
+    :param verbose:
+    :return:
+    """
     if verbose:
         print("\r" + "(WE, WF) = (", num_we, ",", num_wf, ") \t -> \t " + str((t / (m - 1)) * 100) + "% done", end="")
     # All fixed parameters are ready, can run an experiment now.

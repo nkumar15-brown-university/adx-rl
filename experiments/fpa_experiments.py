@@ -1,12 +1,14 @@
-from bo_util import get_gaussian, get_gp_algorithm_param, safe_create_dir
-from skopt import gp_minimize
-from fpa import f, compute_strategy_uniform_case, compute_eps_fpa, compute_m
-import random
-import numpy as np
 import configparser
 import math
-import pandas as pd
+import random
 import sys
+
+import numpy as np
+import pandas as pd
+from skopt import gp_minimize
+
+from .bo_util import get_gaussian, get_gp_algorithm_param, safe_create_dir
+from .fpa import f, compute_strategy_uniform_case, compute_m
 
 if len(sys.argv) > 1:
     expt_id = sys.argv[1]

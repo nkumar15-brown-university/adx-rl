@@ -1,5 +1,6 @@
-import numpy as np
 import math
+
+import numpy as np
 
 
 def compute_m(delta, eps, num_bidders):

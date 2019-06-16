@@ -1,6 +1,7 @@
-from game.structures import Campaign, Good
-from typing import Dict
 import math
+from typing import Dict
+
+from game.structures import Campaign, Good
 
 
 def compute_sigmoidal_effective_reach_ratio(x, reach):

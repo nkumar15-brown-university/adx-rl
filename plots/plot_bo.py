@@ -1,6 +1,6 @@
-from skopt.acquisition import gaussian_ei
 import matplotlib.pyplot as plt
 import numpy as np
+from skopt.acquisition import gaussian_ei
 
 
 def plot_bo(f, n, res, noise_level):

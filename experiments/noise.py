@@ -1,15 +1,16 @@
-import matplotlib.pyplot as plt
-import pandas as pd
 import math
-import numpy as np
-from skopt import gp_minimize
-from prettytable import PrettyTable
-from bo_util import get_gaussian
-import time
-from concurrent.futures import ProcessPoolExecutor, as_completed
-from multiprocessing import cpu_count
 import sys
 import warnings
+from concurrent.futures import ProcessPoolExecutor, as_completed
+from multiprocessing import cpu_count
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from prettytable import PrettyTable
+from skopt import gp_minimize
+
+from .bo_util import get_gaussian
 
 warnings.filterwarnings("ignore")
 

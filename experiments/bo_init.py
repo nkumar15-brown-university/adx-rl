@@ -1,8 +1,13 @@
-from singletonsetup import SingletonSetup
-from bo_util import safe_create_dir, map_of_initial_reserve, MIN_RESERVE_PRICE, MAX_RESERVE_PRICE
-import random
 import configparser
+import random
 import sys
+
+from bo_util import safe_create_dir, map_of_initial_reserve, MIN_RESERVE_PRICE, MAX_RESERVE_PRICE
+from singletonsetup import SingletonSetup
+
+"""
+    Run this file once to create the initial reserve prices of an experiment. 
+"""
 
 if len(sys.argv) > 1:
     expt_id = sys.argv[1]
@@ -13,6 +18,8 @@ else:
 
 # Read the experiment directory
 expt_directory_base = SingletonSetup.path_to_results + f'experiment_' + expt_id + '/'
+
+print(f'reading config file in: {expt_directory_base}')
 
 # Read the configuration file of the experiment.
 expt_config = configparser.ConfigParser()

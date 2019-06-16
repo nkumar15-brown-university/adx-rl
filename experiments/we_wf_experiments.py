@@ -1,9 +1,10 @@
-from game.structures import Market, Campaign, Good
+from typing import List, Dict
+
 from game.game import draw_one_impression_opportunity, run_auctions, draw_one_campaign
+from game.structures import Market, Good
+from game.structures import PrettyPrints
 from strategies.WE import we_strategy
 from strategies.WF import wf_strategy
-from game.structures import PrettyPrints
-from typing import List, Dict
 
 
 def run_we_wf_experiments(reach_discount_factor: float,

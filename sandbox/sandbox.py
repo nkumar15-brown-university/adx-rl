@@ -1,9 +1,6 @@
 from datetime import datetime, timedelta
 from game.structures import Good
 from experiments.singletonsetup import SingletonSetup
-import math
-import numpy as np
-import matplotlib.pyplot as plt
 
 reserve_prices = {Good({"Male", "Young", "High"}, None, None): None,
                   Good({"Male", "Young", "Low"}, None, None): None,
@@ -41,7 +38,6 @@ print("D \t H \t M \t S")
 print("%d \t %d \t %d \t %d" % (d.day - 1, d.hour, d.minute, d.second))
 
 from skopt import gp_minimize
-from experiments.plot_bo import plot_bo
 
 
 def g(x):

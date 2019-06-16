@@ -1,8 +1,7 @@
 import matplotlib.pyplot as plt
-import zipfile
-import seaborn as sns
 import pandas as pd
-from matplotlib.ticker import MaxNLocator, FormatStrFormatter
+import seaborn as sns
+from matplotlib.ticker import FormatStrFormatter
 
 filepath = '../results/expZ.zip'
 
@@ -73,8 +72,8 @@ fig, axs = plt.subplots(ncols=2, nrows=1)
 for i, eps in enumerate([0.03, 0.02]):
     sns.lineplot(x="b", y="m", hue="algo", style="algo", data=get_data_for_eps(eps, None, b), ax=axs[i], hue_order=['random', 'gp', 'gpm', 'gpn'])
     axs[i].set_title(r"$\epsilon =$ " + str(eps))
-    axs[i].set_ylabel("Running max." if i == 0 else "")
-    axs[i].set_xlabel("")
+    axs[i].set_ylabel("Running max. revenue" if i == 0 else "")
+    axs[i].set_xlabel("# of reserve prices searched")
     axs[i].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
     axs[i].get_yaxis().set_visible(i == 0)
     # axs[i].set_ylim(0.15, 0.45)

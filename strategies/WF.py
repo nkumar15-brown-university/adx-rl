@@ -1,5 +1,6 @@
-from game.structures import Campaign, Good, Market, Allocation, Bid, Sorting, PrettyPrints
 from typing import List, Tuple, Dict
+
+from game.structures import Campaign, Good, Market, Allocation, Bid, Sorting
 
 
 def waterfall(m: Market) -> Tuple[Allocation, Dict[Campaign, Good]]:

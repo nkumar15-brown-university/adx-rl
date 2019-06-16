@@ -1,9 +1,11 @@
-from game.structures import Good, Bid, Campaign
-from typing import List, Tuple, Dict
-from random import choice
-import numpy as np
 import math
 import uuid
+from random import choice
+from typing import List, Tuple, Dict
+
+import numpy as np
+
+from game.structures import Good, Bid, Campaign
 
 
 def second_largest(bids) -> float:

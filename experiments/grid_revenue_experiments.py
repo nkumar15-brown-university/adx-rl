@@ -1,10 +1,11 @@
-from singletonsetup import SingletonSetup
-from experiments import estimate_a_single_game
 import configparser
 import os as os
+import time
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from multiprocessing import cpu_count
-import time
+
+from .experiments import estimate_a_single_game
+from .singletonsetup import SingletonSetup
 
 
 def run(r: float, t: int):

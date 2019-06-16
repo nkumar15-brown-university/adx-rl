@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+
 from gt.brg import compute_eps_brg
 from gt.eq import compute_scc_eq, compute_sink_eq, aggregators, aggregate
 

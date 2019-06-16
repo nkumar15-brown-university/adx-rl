@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
-from matplotlib.ticker import MaxNLocator
-import seaborn as sns
 import pandas as pd
+import seaborn as sns
+from matplotlib.ticker import MaxNLocator
 
 pd.options.mode.chained_assignment = None  # default='warn'
 

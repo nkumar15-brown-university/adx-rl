@@ -1,18 +1,23 @@
-from singletonsetup import SingletonSetup
-from experiments import estimate_a_single_game
-from gt.brg import compute_eps_brg
-from gt.eq import compute_scc_eq, compute_sink_eq, save_eq_data, aggregators, aggregate
-from skopt import gp_minimize
-from prettytable import PrettyTable
-import numpy as np
-import random
 import configparser
-import time
+import random
 import sys
+import time
+
+from skopt import gp_minimize
+
+from gt.brg import compute_eps_brg
+from gt.eq import compute_scc_eq, save_eq_data, aggregators, aggregate
 from bo_util import safe_create_dir, save_step_config_file, read_reserve_prices, \
     read_revenue, get_gaussian, get_tuple_of_reserves, get_map_of_reserves, \
-    pretty_print_map_of_reserve, read_reserve_prices_from_dict, \
+    read_reserve_prices_from_dict, \
     MIN_RESERVE_PRICE, MAX_RESERVE_PRICE, map_of_initial_reserve, get_gp_algorithm_param
+from experiments import estimate_a_single_game
+from singletonsetup import SingletonSetup
+
+"""
+    This file defines functionality to run a Bayesian Optimization experiment.
+    Note that bo_init.py needs to be run first, before running this script. 
+"""
 
 
 def query_game(the_setup, the_results_dir, the_eps):

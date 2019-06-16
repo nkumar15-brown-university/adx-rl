@@ -1,7 +1,8 @@
-from bo_util import safe_create_dir, map_of_initial_reserve, MIN_RESERVE_PRICE, MAX_RESERVE_PRICE
-import random
 import configparser
+import random
 import sys
+
+from .bo_util import safe_create_dir
 
 if len(sys.argv) > 1:
     expt_id = sys.argv[1]

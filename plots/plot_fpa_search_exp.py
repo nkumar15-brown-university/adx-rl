@@ -1,7 +1,8 @@
-import pandas as pd
 import matplotlib.pyplot as plt
+import pandas as pd
 import seaborn as sns
-from fpa import expected_revenue_uniform_case
+
+from experiments.fpa import expected_revenue_uniform_case
 
 base_dir = '../../emd-adx-results/fpa'
 algo = 'random'
@@ -44,8 +45,8 @@ for i, eps in enumerate([0.02, 0.01]):
     sns.lineplot(x="step", y="run_max", hue="algo", style="algo", data=final_df[final_df['eps'] == eps], ax=axs[i], hue_order=['random', 'gp', 'gpm', 'gpn'])
     #sns.lineplot(x="step", y="anal_run_max", hue="algo", style="algo", data=final_df[final_df['eps'] == eps], ax=axs[i], hue_order=['random', 'gp', 'gpm', 'gpn'])
     axs[i].set_title(r"$\epsilon =$ " + str(eps))
-    axs[i].set_ylabel("Running max." if i == 0 else "")
-    axs[i].set_xlabel("")
+    axs[i].set_ylabel("Running max. revenue" if i == 0 else "")
+    axs[i].set_xlabel("# of reserve prices searched")
     axs[i].legend(loc='lower right')
     axs[i].get_yaxis().set_visible(i == 0)
     #axs[i].axhline(y=analytical_revenue, linestyle=':', linewidth=0.5, color='black')

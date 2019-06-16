@@ -1,1 +1,0 @@
-color_map = {'random':'b', gp: ''}

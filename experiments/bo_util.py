@@ -1,11 +1,13 @@
-from collections import namedtuple
-from game.structures import Good
-from typing import Dict, Tuple
-from prettytable import PrettyTable
-import os as os
-import math
 import configparser
+import math
+import os as os
+from collections import namedtuple
+from typing import Dict, Tuple
+
 import numpy as np
+from prettytable import PrettyTable
+
+from game.structures import Good
 
 # Bounds on reserve price
 MIN_RESERVE_PRICE = 0.0
@@ -177,6 +179,11 @@ def get_map_of_reserves(tuple_reserves: Tuple[float]) -> Dict[Good, float]:
 
 
 def pretty_print_map_of_reserve(map_of_reserve: Dict[Good, float]) -> PrettyTable:
+    """
+    Takes in a map from good to reserve prices and returns a prettytable.
+    :param map_of_reserve:
+    :return:
+    """
     reserve_table = PrettyTable()
     reserve_table.field_names = ['Market', 'Reserve']
     reserve_table.align['Market'] = 'l'

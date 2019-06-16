@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Set, List, Dict
+
 from prettytable import PrettyTable
 
 
