@@ -1,12 +1,14 @@
 import math
 import uuid
 from random import choice
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, TypeVar
 
 import numpy as np
 
 from game.structures import Good, Bid, Campaign
 
+
+T = TypeVar('T')
 
 def second_largest(bids) -> float:
     """
@@ -24,6 +26,20 @@ def second_largest(bids) -> float:
             else:
                 m2 = bid.bid
     return m2 if count >= 2 else 0.0
+
+
+def draw_one(pmf: Dict[T, float]) -> T:
+    """
+    Draw one item T according to the given probability mass function
+    :param pmf:
+    :return:
+    """
+    u = np.random.uniform(0, 1)
+    accumulator = 0
+    for g, prob in pmf.items():
+        accumulator += prob
+        if u <= accumulator:
+            return g
 
 
 def draw_one_impression_opportunity(pmf_base_goods: Dict[Good, float]) -> Good:
