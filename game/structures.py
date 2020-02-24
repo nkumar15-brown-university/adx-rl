@@ -71,7 +71,7 @@ class Market:
 @dataclass
 class Allocation:
     """
-    An allocation is a mapping from campaings to impressions (goods).
+    An allocation is a mapping from campaigns to impressions (goods).
     """
     market: Market
     allocation: Dict[Campaign, Dict[Good, int]]
