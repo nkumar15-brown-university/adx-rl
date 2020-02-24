@@ -82,18 +82,18 @@ def draw_one_campaign(n: int, reach_discount_factor: float, k: int, goods: List[
     return Campaign("Random Campaign " + str(uuid.uuid4()), reach, budget, random_target)
 
 
-def run_auctions(impression_opportunities: List[Good], goods: List[Good], campaigns: List[Campaign], standing_bids: List[Bid]) -> \
+def run_auctions(impression_opportunities: List[Good], market_segments: List[MarketSegment], campaigns: List[Campaign], standing_bids: List[Bid]) -> \
         Tuple[Dict[Campaign, List[Good]], Dict[Campaign, List[Good]]]:
-    allocations = {c: {g: 0 for g in goods} for c in campaigns}
-    expenditure = {c: {g: 0 for g in goods} for c in campaigns}
-    reserve_prices = {g: g.reserve_price for g in goods}
+    allocations = {c: {m: 0 for m in market_segments} for c in campaigns}
+    expenditure = {c: {m: 0 for m in market_segments} for c in campaigns}
+    reserve_prices = {i: i.reserve_price for i in impression_opportunities}
     # Run each individual second price auction.
     # print("\n\n --------- Running Auctions ------- \n \n")
     for i in impression_opportunities:
         # print("Auction of ", i)
         # print("\t standing_bids = ", standing_bids)
         # Collect relevant bids. These are all the bids that match the impression opportunity and are at least the reserve price.
-        relevant_bids = list(filter(lambda bid, g=i, r=reserve_prices: g.__matches__(bid.good) and bid.bid >= r[g], standing_bids))
+        relevant_bids = list(filter(lambda bid, r=reserve_prices: i.market_segment.__matches__(bid.market_segment) and bid.bid >= r[i], standing_bids))
         if len(relevant_bids) > 0:
             # The bids might contain competing bids from the same agent. Pick only the max bid of each agent. We filter by agent (campaign), and take the max if it exists.
             relevant_bids = sum(list(map(lambda l: [max(l)] if len(l) > 0 else [], [list(filter(lambda x, a=c: a == x.campaign, relevant_bids)) for c in campaigns])), [])
@@ -108,12 +108,12 @@ def run_auctions(impression_opportunities: List[Good], goods: List[Good], campai
             price = max(second_largest(relevant_bids), reserve_prices[i])
             # Allocate impressions to winners, breaking ties randomly. First, select a random winner among all winners, then allocate and price.
             winner = choice(winning_bids)
-            allocations[winner.campaign][i] += 1
-            expenditure[winner.campaign][i] += price
+            allocations[winner.campaign][i.market_segment] += 1
+            expenditure[winner.campaign][i.market_segment] += price
             # Money has been potentially spent. Hence, remove all the bids that have reached their limit. A bid limit is the sum of expenditure over all matching markets.
             # We remove the bids where expenditure across all matching markets is less than the bid since we assume a bidder could always end up paying its bid (but not frenq).
             standing_bids = list(
-                filter(lambda bid_obj: bid_obj.limit - sum([expenditure[bid_obj.campaign][g] for g in goods if g.__matches__(bid_obj.good)]) >= bid_obj.bid, standing_bids))
+                filter(lambda bid_obj: bid_obj.limit - sum([expenditure[bid_obj.campaign][m] for m in market_segments if m.__matches__(bid_obj.market_segment)]) >= bid_obj.bid, standing_bids))
             # Some debug info
             # print("%%%% relevant_bids = ", relevant_bids)
             # print("\t\twinning_bids = ", winning_bids)
