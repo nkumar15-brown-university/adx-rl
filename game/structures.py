@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Set, List, Dict
 
 from prettytable import PrettyTable
+import game.game as game
 
 
 @dataclass
@@ -47,6 +48,7 @@ class Campaign:
     name: str
     reach: int
     budget: float
+    spend: float ## How much has been spent so far on the campaign (e.g. via bids won)
     target: Good
 
     def __repr__(self):
@@ -65,8 +67,43 @@ class Market:
     A market is a list of campaigns together with a list of goods
     """
     campaigns: List[Campaign]
-    goods: List[Good]
+    goods: List[Good] ## TODO: rename this to impression_opps
+    campaigns_pmf: Dict[Campaign, float]
+    impression_opps_pmf: Dict[Good, float]
 
+    def __init__(self, campaigns_pmf: Dict[Campaign, float], impression_opps_pmf: Dict[Good, float]):
+    	self.campaigns_pmf = campaigns_pmf
+    	self.impression_opps_pmf = impression_opps_pmf
+
+    def draw_campaigns(self, draw_amount: int, clear_current = True):
+    	if clear_current:
+    		self.campaigns = []
+    	for i in range(draw_amount):
+    		self.campaigns.append(game.draw_one(self.campaigns_pmf))
+
+    def draw_impression_opps(self, draw_amount: int, clear_current = True):
+    	if clear_current:
+    		self.goods = []
+    	for i in range(draw_amount):
+    		self.goods.append(game.draw_one(self.impression_opps_pmf)) 
+
+    def initialize(self, num_of_campaigns: int, num_of_impression_opps: int):
+    	self.draw_campaigns(num_of_campaigns)
+    	self.draw_impression_opps(num_of_impression_opps)
+    	return self.campaigns, self.goods
+
+    def run_auction(self, bids, update_campaigns = True):
+    	allocations, expenditure = game.run_auctions(self.goods, self.impression_opps_pmf.keys(), self.campaigns, bids)
+    	## allocations = {c: {g: 0 for g in goods} for c in campaigns}
+    	## expenditure = {c: {g: 0 for g in goods} for c in campaigns}
+    	if (update_campaigns):
+    		for campaign in campaigns:
+    			temp_allocs = allocations[campaign]
+    			temp_exp = expenditure[campaign]
+    			for imp_count in temp_allocs.values():
+    				campaign.reach -= imp_count
+    			for cost in temp_exp.values():
+    				campaign.spend += cost
 
 @dataclass
 class Allocation:
