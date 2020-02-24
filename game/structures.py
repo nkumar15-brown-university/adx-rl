@@ -104,6 +104,8 @@ class Market:
     				campaign.reach -= imp_count
     			for cost in temp_exp.values():
     				campaign.spend += cost
+    	return allocations, expenditure
+
 
 @dataclass
 class Allocation:
