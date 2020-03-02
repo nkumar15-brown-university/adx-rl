@@ -74,12 +74,14 @@ class Campaign:
     remaining_reach: int ## How much of the reach is left
     target: MarketSegment ## Which market segment to target
 
-    def __init__(self, reach, budget, target):
-        self.uid = uuid.uuid4().int
+    def __init__(self, uid=None, reach, budget, spend=0.0, remaining_reach=None, target):
+        if (uid == None):
+            self.uid = uuid.uuid4().int
         self.reach = reach
         self.budget = budget
-        self.spend = 0.0
-        self.remaining_reach = reach
+        self.spend = spend
+        if (remaining_reach == None):
+            self.remaining_reach = reach
         self.target = target
 
     def __repr__(self):
@@ -92,10 +94,18 @@ class Campaign:
         return hash(self.uid)
 
     def to_vector(campaign: Campaign):
-        return []
+        return [campaign.uid, campaign.reach, 
+                campaign.budget, campaign.spend, 
+                campaign.remaining_reach, campaign.target.uid]
 
-    def from_vector(campaign_vector: List, all_possible_market_segments: Set[MarketSegment]):
-        camp = Campaign(-1, -1.0, None)
+    def from_vector(campaign_vector: List[T], all_possible_market_segment_uids: Set[int]):
+        uid = campaign_vector[0]
+        reach = campaign_vector[1]
+        budget = campaign_vector[2]
+        spend = campaign_vector[3]
+        remaining_reach = campaign_vector[4]
+        target = all_possible_market_segment_uids[campaign_vector[5]]
+        camp = Campaign(uid, reach, budget, spend, remaining_reach, target)
         return camp
 
 
@@ -118,7 +128,8 @@ class Market:
     		self.campaigns = []
     	for i in range(draw_amount):
             campaign_specification = game.draw_one(self.campaigns_pmf)
-            camp = Campaign(reach, budget, )
+            reach, budget, target = campaign_specification[0], campaign_specification[1], campaign_specification[2]
+            camp = Campaign(reach, budget, target)
     		self.campaigns.append(camp)
 
     def draw_impression_opps(self, draw_amount: int, clear_current = True):
@@ -134,9 +145,9 @@ class Market:
     	return self.campaigns, self.goods
 
     def run_auction(self, bids, update_campaigns = True):
-    	allocations, expenditure = game.run_auctions(self.goods, self.market_segments_pmf.keys(), self.campaigns, bids) ## TODO: this is broken now
-    	## allocations = {c: {g: 0 for g in goods} for c in campaigns}
-    	## expenditure = {c: {g: 0 for g in goods} for c in campaigns}
+    	allocations, expenditure = game.run_auctions(self.goods, self.market_segments_pmf.keys(), self.campaigns, bids)
+    	# allocations = {c: {m: 0 for m in market_segments} for c in campaigns}
+        # expenditure = {c: {m: 0 for m in market_segments} for c in campaigns}
     	if (update_campaigns):
     		for campaign in campaigns:
     			temp_allocs = allocations[campaign]
@@ -211,6 +222,17 @@ class Bid:
 
     def __lt__(self, other):
         return self.bid <= other.bid
+
+    def to_vector(bid: Bid):
+        return [bid.campaign.uid, bid.market_segment.uid, bid.bid, bid.limit]
+
+    def from_vector(bid_vector: List[T], all_possible_campaign_uids: Set[int], all_possible_market_segment_uids: Set[int]):
+        campaign = all_possible_campaign_uids[bid_vector[0]]
+        market_segment = all_possible_market_segment_uids[campaign_vector[1]]
+        bid = campaign_vector[2]
+        limit = campaign_vector[3]
+        bid = Bid(campaign, market_segment, bid, limit)
+        return bid
 
 
 class Sorting:
